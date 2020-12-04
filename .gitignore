@@ -37,3 +37,27 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# data
+data/
+
+# communication
+communication/
+
+# figures
+figures/
+
+# GIS
+GIS/
+
+# file types
+*pdf
+*html
+*Rmd
+*rds
+*png
+*jpg
+*mx20
+
+# forms
+forms_data_collection/

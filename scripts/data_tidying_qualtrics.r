@@ -46,6 +46,9 @@ glimpse(table_zoom_reg )
 # save data to csv
 write_csv(table_zoom_reg, "data/tidy/ltbc_registration.csv")
 
+# save data to rds
+write_rds(table_zoom_reg, "data/tidy/ltbc_registration.rds")
+
 # prepare data for mapping ----
 zoom_zips <- table_zoom_reg %>%
   count(zipcode) %>%

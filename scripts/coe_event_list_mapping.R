@@ -469,6 +469,10 @@ sf_events_by_zipcode_stats_map <- sf_events_by_zipcode_stats %>%
     labels = c("<40", "<80", "<150", "<331", ">=331")
   )
 
+sf_events_by_zipcode_stats %>%
+  summarise(min_INTPTLAT10 = min(INTPTLAT10),
+            max_INTPTLAT10 = max(INTPTLAT10))
+
 # display
 sf_events_by_zipcode_stats_map
 
@@ -492,8 +496,8 @@ sf_events_by_zipcode_catchment_stats <- geo_join(sf_az_zipcodes,
 )
 
 sf_events_by_zipcode_catchment_stats %>% summarise(
-  min_INTPTLAT10 = min(INTPTLAT10),
-  max_INTPTLAT10 = max(INTPTLAT10)
+  min_INTPTLON10 = min(INTPTLON10),
+  max_INTPTLON10 = max(INTPTLON10)
 )
 
 # generate choropleth and save
@@ -527,4 +531,74 @@ ggsave("sf_events_by_zipcode_catchment_stats_map.png",
   width = 8,
   units = "in",
   limitsize = TRUE
+)
+
+# combine map to show LTBC qualtrics registrations and event list choropleth
+# load and select data
+LTBC_qualtrics_registrations <- read_rds("data/tidy/ltbc_registration.rds") %>%
+  select(zipcode) %>%
+  drop_na()
+
+# add mapping data
+LTBC_qualtrics_registrations <- inner_join(zip_db, LTBC_qualtrics_registrations) %>%
+  select(zipcode, county, state, lat, lng) %>%
+  drop_na()
+
+# generate map
+# add points to existing choropleth
+sf_events_by_zipcode_stats_map_LTBC <- sf_events_by_zipcode_stats_map +
+  geom_jitter(data = LTBC_qualtrics_registrations, 
+             mapping = aes(x = lng, y = lat),
+             alpha = 0.3,
+             color = "red",
+             size = 1.5) +
+  coord_sf(ylim = c(31, 37),
+           xlim = c( -115, -108))
+
+# view
+sf_events_by_zipcode_stats_map_LTBC
+
+# export to PNG
+ggsave("sf_events_by_zipcode_stats_map_LTBC.png",
+       device = "png",
+       path = "figures/maps/",
+       dpi = 300,
+       width = 8,
+       units = "in",
+       limitsize = TRUE
+)
+
+# combine map to show MCC survey response
+# load and select data
+chat_response <- read_rds("data/tidy/COE_cat_chat.rds") %>%
+  select(zipcode = zip_code) %>%
+  drop_na()
+
+# add mapping data
+chat_response <- inner_join(zip_db, chat_response) %>%
+  select(zipcode, county, state, lat, lng) %>%
+  drop_na()
+
+# generate map
+# add points to existing choropleth
+sf_events_by_zipcode_stats_map_LTBC_MCC <- sf_events_by_zipcode_stats_map_LTBC +
+  geom_jitter(data = chat_response, 
+              mapping = aes(x = lng, y = lat),
+              alpha = 0.3,
+              color = "red",
+              size = 1.5) +
+  guides(shape = guide_legend(chat_response), size = guide_legend(chat_response))
+  
+
+# view
+sf_events_by_zipcode_stats_map_LTBC_MCC
+
+# export to PNG
+ggsave("sf_events_by_zipcode_stats_map_LTBC_MCC.png",
+       device = "png",
+       path = "figures/maps/",
+       dpi = 300,
+       width = 8,
+       units = "in",
+       limitsize = TRUE
 )

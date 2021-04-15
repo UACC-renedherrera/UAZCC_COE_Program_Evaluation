@@ -1,4 +1,7 @@
 # Presentation Evaluation
+# in REDCap: 
+# 1. CSV Raw
+# 2. export survey identifier field and timestamp
 
 # set up ----
 # load packages
@@ -10,6 +13,30 @@ library(leaflet)
 library(mapview)
 library(lubridate)
 library(ggthemes)
+library(janitor)
+
+# read from csv to environment
+MCC_data <- read_csv("data/raw/EvaluationForMorning_DATA_2021-04-15_1209.csv") %>%
+  clean_names()
+
+glimpse(MCC_data)
+
+# print list of email
+list_email <- MCC_data %>%
+  select(email) %>%
+  drop_na() %>%
+  arrange(email) 
+
+# change to lowercase 
+list_email <- str_to_lower(list_email$email) %>%
+  as_tibble()
+
+# remove duplicates and save to disk as CSV 
+list_email %>%
+  distinct() %>%
+  write_csv(file = "data/tidy/MCC_email_list.csv")
+
+
 
 # read data from csv
 chat_data <- read_csv("data/raw/EvaluationForMorning_DATA_2020-11-02_0910.csv",

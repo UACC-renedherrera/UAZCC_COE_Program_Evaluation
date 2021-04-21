@@ -1,12 +1,13 @@
 # introduction
 # the purpose of this script is to desribe the characteristics of UAZCC LTBC Qualtrics registrations by:
-# 1. getting data from qualtrics 
+# 1. getting data from qualtrics
 # 2. tidy data
-# 3. generate tables, charts, and maps 
+# 3. generate tables, charts, and maps
 
 # setup ----
 
 # packages
+library(here)
 library(tidyverse)
 library(qualtRics)
 library(zipcodeR)
@@ -22,7 +23,7 @@ surveys
 zoom_reg <- fetch_survey(surveys$id[6])
 glimpse(zoom_reg)
 
-# exploratory data analysis ---- 
+# exploratory data analysis ----
 # which states?
 distinct(zoom_reg, Q4_3)
 
@@ -33,13 +34,13 @@ table_zoom_reg <- zoom_reg %>%
   unique() %>%
   mutate(email = str_extract(Q2_3, "@.+"),
          zipcode = str_extract(Q4_2, "[\\d]{5}")) %>%
-  select(email, 
+  select(email,
          zipcode,
          state = Q4_3,
-         org = Q4_4) 
+         org = Q4_4)
 
 table_zoom_reg$email <- str_to_lower(table_zoom_reg$email)
-  
+
 # inspect
 glimpse(table_zoom_reg )
 
@@ -73,7 +74,7 @@ leaflet(data = zoom_zips_map) %>%
   addTiles() %>%
   addMarkers(~lng, ~lat)
 
-# data processing ---- 
+# data processing ----
 # count unique email domain and save to csv
 table_zoom_reg %>%
   count(email) %>%
@@ -102,7 +103,7 @@ ggsave(
   limitsize = TRUE
 )
 
-# plot chart of count of unique zip code 
+# plot chart of count of unique zip code
 table_zoom_reg %>%
   count(zipcode) %>%
   drop_na() %>%
@@ -114,7 +115,7 @@ table_zoom_reg %>%
        y = "") +
   theme_classic()
 
-# save plot of zipcode to disk 
+# save plot of zipcode to disk
 ggsave(
   filename = "zipcode.png",
   device = "png",
@@ -123,7 +124,7 @@ ggsave(
   limitsize = TRUE
 )
 
-# count unique zipcode and save to csv 
+# count unique zipcode and save to csv
 table_zoom_reg %>%
   count(zipcode) %>%
   drop_na() %>%
@@ -142,7 +143,7 @@ table_zoom_reg %>%
        y = "") +
   theme_classic()
 
-# save plot of state to disk 
+# save plot of state to disk
 ggsave(
   filename = "state.png",
   device = "png",
@@ -157,4 +158,3 @@ table_zoom_reg %>%
   drop_na() %>%
   arrange(desc(n)) %>%
   write_csv("data/tidy/ltbc_registration_state.csv")
-

@@ -89,9 +89,9 @@ beyond_reg_mapping <- st_multipoint(x = beyond_reg_mapping)
 beyond_reg_mapping <- st_sfc(beyond_reg_mapping, crs = 4269)
 
 ggplot() +
-  geom_sf(data = az_counties) +
-  geom_sf(data = beyond_reg_mapping, mapping = aes(color = "IP Address")) +
-  geom_sf(data = registration_spatial, mapping = aes(color = "Zip Code")) +
+  geom_sf(data = az_counties, fill = "#E2E9EB") +
+  geom_sf(data = beyond_reg_mapping, color = "#0C234B", alpha = 0.666, size = 2) +
+  geom_sf(data = registration_spatial, color = "#AB0520", alpha = 0.666, size = 2) +
   theme_map()
 
 st_write(
@@ -227,3 +227,4 @@ beyond_survey %>%
     col.names = c("Response", "Number"),
     caption = "Have you been given a survivorship care plan?"
   )  
+

@@ -34,6 +34,24 @@ events <- read_csv("data/raw/event_zip_code.csv",
 # inspect
 glimpse(events)
 
+# summarize event by zip code
+event_zip_summary <- events %>%
+  group_by(zipcode) %>%
+  summarize(participants = sum(participants),
+            event_count = n()) %>%
+  mutate(participants_per_event = participants/event_count)
+
+# join summary df to spatial
+# get census tracts from tigris 
+az_tracts <- tracts(state = "04")
+
+# join
+event_summary_spatial <- geo_join(spatial_data = zip_db,
+         data_frame = event_zip_summary,
+         by_sp = "zipcode",
+         by_df = "zipcode")
+
+
 events <- inner_join(events, zip_db, by = "zipcode")
 
 events <- events %>%
@@ -547,7 +565,7 @@ LTBC_qualtrics_registrations <- inner_join(zip_db, LTBC_qualtrics_registrations)
 # generate map
 # add points to existing choropleth
 sf_events_by_zipcode_stats_map_LTBC <- sf_events_by_zipcode_stats_map +
-  geom_jitter(data = LTBC_qualtrics_registrations, 
+  geom_jitter(data = LTBC_qualtrics_registrations,
              mapping = aes(x = lng, y = lat),
              alpha = 0.3,
              color = "red",
@@ -582,13 +600,13 @@ chat_response <- inner_join(zip_db, chat_response) %>%
 # generate map
 # add points to existing choropleth
 sf_events_by_zipcode_stats_map_LTBC_MCC <- sf_events_by_zipcode_stats_map_LTBC +
-  geom_jitter(data = chat_response, 
+  geom_jitter(data = chat_response,
               mapping = aes(x = lng, y = lat),
               alpha = 0.3,
               color = "red",
               size = 1.5) +
   guides(shape = guide_legend(chat_response), size = guide_legend(chat_response))
-  
+
 
 # view
 sf_events_by_zipcode_stats_map_LTBC_MCC

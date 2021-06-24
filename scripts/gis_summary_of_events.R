@@ -54,6 +54,27 @@ glimpse(event_zip_summary)
 event_zip_summary <- event_zip_summary %>%
   select(1:4, 9:12, 16, 17)
 
+# min, max, median, mean
+event_zip_summary %>%
+  summarize(min = min(participants),
+            max = max(participants),
+            median = median(participants),
+            average = mean(participants))
+
+# arrange to show highest count events 
+event_zip_summary %>%
+  arrange(desc(participants))
+
+# histogram of event participant
+event_zip_summary %>%
+  ggplot(mapping = aes(x = participants)) +
+  geom_histogram(bins = 100)
+
+# remove outliers (connect 2 stem events)
+event_zip_summary <- event_zip_summary %>%
+  drop_na() %>%
+  filter(participants < 6000)
+
 # tigris zip codes 
 tigris_zip_codes <- zctas(state = "04")
 

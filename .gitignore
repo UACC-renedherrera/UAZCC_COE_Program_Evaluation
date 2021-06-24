@@ -51,14 +51,15 @@ figures/
 GIS/
 
 # file types
-*pdf
-*html
-*Rmd
-*rds
-*png
-*jpg
-*mx20
-*svg
+*.pdf
+*.html
+*.Rmd
+*.rds
+*.png
+*.jpg
+*.mx20
+*.svg
+*.tiff
 
 # forms
 forms_data_collection/

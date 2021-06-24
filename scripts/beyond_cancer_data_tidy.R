@@ -6,6 +6,7 @@
 # load package libraries 
 library(here)
 library(tidyverse)
+library(janitor)
 library(ggthemes)
 library(qualtRics)
 library(zipcodeR)
@@ -31,12 +32,28 @@ surveys <- all_surveys()
 surveys
 
 # select zoom registration survey & inspect
-beyond_registration <- fetch_survey(surveys$id[3])
-glimpse(beyond_registration)
+beyond_1_registration <- fetch_survey(surveys$id[3]) %>%
+  clean_names()
+glimpse(beyond_1_registration)
+
+beyond_1_survey <- fetch_survey(surveys$id[8]) %>%
+  clean_names()
+glimpse(beyond_1_survey)
+
+bc1 <- full_join(beyond_1_registration, beyond_1_survey)
 
 # select zoom registration survey & inspect
-beyond_survey <- fetch_survey(surveys$id[7])
-glimpse(beyond_survey)
+beyond_2_registration <- fetch_survey(surveys$id[12]) %>%
+  clean_names()
+glimpse(beyond_2_registration)
+
+bc <- full_join(beyond_1_registration, beyond_2_registration,
+                # by = "recorded_date",
+                # suffix = c("_1", "_2"),
+                keep = FALSE)
+glimpse(bc)
+
+
 
 # change character to date time 
 beyond_survey$Q4.3 <- as_date(beyond_survey$Q4.3, format = "%m/%d/%Y")
@@ -68,6 +85,34 @@ registration_spatial <- inner_join(beyond_registration, zip_db, by = "zipcode") 
   filter(lng >= -115) %>%
   select(lng, lat)
 
+# generate a table of zip code frequencies 
+inner_join(beyond_registration, zip_db, by = "zipcode") %>%
+  filter(lat <= 37) %>%
+  filter(lat >= 30) %>%
+  filter(lng <= -109) %>%
+  filter(lng >= -115) %>%
+  group_by(zipcode) %>%
+  summarize(count = n()) %>%
+  arrange(zipcode) %>%
+  kable(
+    col.names = c("Zipcode", "Count"),
+    caption = "Self-reported AZ zipcode of respondents"
+  )
+
+# generate a table of county  frequencies 
+inner_join(beyond_registration, zip_db, by = "zipcode") %>%
+  filter(lat <= 37) %>%
+  filter(lat >= 30) %>%
+  filter(lng <= -109) %>%
+  filter(lng >= -115) %>%
+  group_by(county) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  kable(
+    col.names = c("AZ County", "Count"),
+    caption = "County containing zip code"
+  )
+
 registration_spatial <- as.matrix(registration_spatial)
 registration_spatial <- st_multipoint(x = registration_spatial)
 registration_spatial <- st_sfc(registration_spatial, crs = 4269)
@@ -82,6 +127,15 @@ beyond_reg_mapping <- beyond_registration %>%
   filter(lng <= -109) %>%
   filter(lng >= -115)
 
+beyond_reg_mapping <- bc %>%
+  select(lng = location_longitude,
+         lat = location_latitude
+  ) %>%
+  filter(lat <= 37) %>%
+  filter(lat >= 30) %>%
+  filter(lng <= -109) %>%
+  filter(lng >= -115)
+
 beyond_reg_mapping <- as.matrix(beyond_reg_mapping)
 
 beyond_reg_mapping <- st_multipoint(x = beyond_reg_mapping)
@@ -90,9 +144,13 @@ beyond_reg_mapping <- st_sfc(beyond_reg_mapping, crs = 4269)
 
 ggplot() +
   geom_sf(data = az_counties, fill = "#E2E9EB") +
-  geom_sf(data = beyond_reg_mapping, color = "#0C234B", alpha = 0.666, size = 2) +
-  geom_sf(data = registration_spatial, color = "#AB0520", alpha = 0.666, size = 2) +
-  theme_map()
+  geom_sf(data = beyond_reg_mapping, color = "#0C234B", alpha = 0.75, size = 2) +
+  # geom_sf(data = registration_spatial, color = "#AB0520", alpha = 0.5, size = 2) +
+  theme_map() +
+  labs(title = "IP Location of Beyond Cancer Registration from Qualtrics"#,
+       # subtitle = "Red = IP address \nBlue = self report zip code",
+       #caption = "n = 27"
+       )
 
 st_write(
   obj = az_counties,
